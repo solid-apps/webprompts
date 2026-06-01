@@ -20,7 +20,7 @@
   .top button:hover{border-color:var(--accent)}
   .top a.root{color:var(--mut);text-decoration:none;font-size:.82rem;margin-left:.2rem}
 
-  .viewport{flex:1 1 auto;position:relative;overflow:hidden;cursor:grab;background:
+  .viewport{flex:1 1 auto;position:relative;overflow:hidden;cursor:grab;touch-action:none;background:
     radial-gradient(circle at 1px 1px, rgba(124,58,237,.12) 1px, transparent 0) 0 0/22px 22px}
   .viewport.drag{cursor:grabbing}
   #stage{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
@@ -40,8 +40,8 @@
   .node video.media{background:#000}
   .node audio.media{height:auto;min-height:40px;object-fit:initial;background:transparent;width:100%;padding:.45rem .5rem 0}
   .node .body{padding:.5rem .6rem}
-  .node .prompt{color:#33304a;font-size:.8rem;white-space:pre-wrap;word-break:break-word;max-height:220px;overflow:auto;user-select:text}
-  .node .desc{color:#33304a;font-size:.8rem;font-style:italic;white-space:pre-wrap;word-break:break-word;max-height:150px;overflow:auto;user-select:text}
+  .node .prompt{color:#33304a;font-size:.8rem;white-space:pre-wrap;word-break:break-word;max-height:220px;overflow:auto;user-select:text;touch-action:pan-y}
+  .node .desc{color:#33304a;font-size:.8rem;font-style:italic;white-space:pre-wrap;word-break:break-word;max-height:150px;overflow:auto;user-select:text;touch-action:pan-y}
   .node .meta{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.4rem}
   .node .chip{font-size:.66rem;color:var(--mut);background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:.04rem .45rem}
 

@@ -52,6 +52,10 @@
   .center h2{color:var(--ink)}
   .bible{position:absolute;right:14px;top:14px;max-width:320px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:.55rem .7rem;font-size:.78rem;color:#33304a;box-shadow:0 4px 14px rgba(28,21,48,.08);z-index:4}
   .bible b{display:block;color:var(--accent);font-size:.64rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.2rem}
+  /* mobile: keep the bible out of the way — smaller, capped, scrollable (desktop unchanged) */
+  @media (max-width:700px){
+    .bible{max-width:54vw;top:8px;right:8px;padding:.4rem .5rem;font-size:.72rem;max-height:34vh;overflow:auto;touch-action:pan-y}
+  }
 </style>
 </head>
 <body>

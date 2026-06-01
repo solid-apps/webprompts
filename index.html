@@ -38,6 +38,7 @@
   .node .st.success{background:#10b981}.node .st.pending{background:#f59e0b}.node .st.error{background:#ef4444}
   .node .media{display:block;width:100%;height:120px;object-fit:cover;background:#0d0a18}
   .node video.media{background:#000}
+  .node audio.media{height:auto;object-fit:initial;background:transparent;width:100%;padding:.45rem .5rem 0}
   .node .body{padding:.5rem .6rem}
   .node .prompt{color:#33304a;font-size:.8rem;white-space:pre-wrap;word-break:break-word;max-height:220px;overflow:auto;user-select:text}
   .node .desc{color:#33304a;font-size:.8rem;font-style:italic;white-space:pre-wrap;word-break:break-word;max-height:150px;overflow:auto;user-select:text}
@@ -119,6 +120,7 @@ function collectNodes(doc){
       status: (lit(P(n,"status"))||"").toLowerCase(),
       image: idOf(S(n,"image"))||idOf(S(n,"thumbnailUrl")),
       video: idOf(S(n,"video"))||idOf(S(n,"contentUrl")),
+      audio: idOf(S(n,"audio"))||idOf(S(n,"audioUrl")),
       from: arr(P(n,"derivedFrom")).map(idOf).filter(Boolean)
     };
   });
@@ -136,6 +138,7 @@ function nodeCard(nd){
   var media="";
   if(nd.video) media='<video class="media" src="'+esc(nd.video)+'" controls playsinline preload="metadata"></video>';
   else if(nd.image) media='<img class="media" src="'+esc(nd.image)+'" alt="">';
+  else if(nd.audio) media='<audio class="media" src="'+esc(nd.audio)+'" controls preload="metadata"></audio>';
   var bodyParts=[];
   if(nd.desc) bodyParts.push('<div class="desc">'+esc(nd.desc)+'</div>');
   if(nd.prompt) bodyParts.push('<div class="prompt">'+esc(nd.prompt)+'</div>');
@@ -205,7 +208,7 @@ function fit(){
 // ---- pan + zoom ----
 (function(){
   var vp=$("vp"), down=null;
-  vp.addEventListener("pointerdown",function(e){ if(e.target.closest("button,video,a,input,textarea,.prompt,.desc,.bible"))return; down={x:e.clientX,y:e.clientY,tx:tx,ty:ty}; vp.classList.add("drag"); vp.setPointerCapture(e.pointerId); });
+  vp.addEventListener("pointerdown",function(e){ if(e.target.closest("button,video,audio,a,input,textarea,.prompt,.desc,.bible"))return; down={x:e.clientX,y:e.clientY,tx:tx,ty:ty}; vp.classList.add("drag"); vp.setPointerCapture(e.pointerId); });
   vp.addEventListener("pointermove",function(e){ if(!down)return; tx=down.tx+(e.clientX-down.x); ty=down.ty+(e.clientY-down.y); applyTransform(); });
   vp.addEventListener("pointerup",function(e){ down=null; vp.classList.remove("drag"); try{vp.releasePointerCapture(e.pointerId);}catch(_){} });
   vp.addEventListener("wheel",function(e){

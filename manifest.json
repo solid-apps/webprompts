@@ -1,0 +1,14 @@
+{
+  "name": "webprompts",
+  "short_name": "webprompts",
+  "description": "A forkable AI prompt → media → video canvas on your pod. Load a webprompts JSON-LD and see the node graph (prompts, images, clips, stitch, score, export) wired by provenance.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f4fb",
+  "theme_color": "#7c3aed",
+  "handles": ["url"],
+  "icons": [
+    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

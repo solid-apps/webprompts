@@ -1,0 +1,77 @@
+{
+  "@context": {
+    "schema": "https://schema.org/",
+    "wp": "https://webprompts.org/ns#"
+  },
+  "@id": "#this",
+  "@type": "wp:Canvas",
+  "schema:name": "YEAR 2049",
+  "wp:bible": "Style: cinematic, anamorphic, dusk amber + teal, fine film grain, slow deliberate camera. Canon: near-future 2049, ruined megacity. Reuse character descriptions VERBATIM downstream.",
+  "wp:node": [
+    {
+      "@id": "#hero",
+      "@type": "wp:CharacterSheet",
+      "schema:name": "The Courier",
+      "wp:description": "A wiry courier in a charcoal long coat, close-cropped hair, a small scar through one eyebrow, weathered amber goggles pushed up on the forehead.",
+      "wp:x": 60, "wp:y": 240,
+      "schema:image": "https://solid-apps.github.io/webprompts/favicon.svg",
+      "wp:status": "success"
+    },
+    {
+      "@id": "#board",
+      "@type": "wp:Storyboard",
+      "schema:name": "Storyboard",
+      "wp:prompt": "Three beats: (1) the courier crests a dune of rubble at dusk; (2) a glow blooms over the dead skyline; (3) they break into a run toward it.",
+      "wp:x": 380, "wp:y": 60,
+      "wp:derivedFrom": [{ "@id": "#hero" }],
+      "wp:status": "success"
+    },
+    {
+      "@id": "#clip1",
+      "@type": "wp:Clip",
+      "schema:name": "Shot 1 — the crest",
+      "wp:prompt": "The Courier crests a dune of rubble at dusk, amber light raking across. One unbroken continuous take, slow push-in. Landmark tower kept on frame-left throughout.",
+      "wp:model": "Seedance", "wp:duration": 15,
+      "wp:x": 380, "wp:y": 300,
+      "wp:derivedFrom": [{ "@id": "#hero" }, { "@id": "#board" }],
+      "schema:video": "", "wp:status": "success"
+    },
+    {
+      "@id": "#clip2",
+      "@type": "wp:Clip",
+      "schema:name": "Shot 2 — the bloom",
+      "wp:prompt": "Match-frame from Shot 1's last beat: same dune, same amber light, tower on frame-left. A glow blooms over the dead skyline; the Courier breaks into a run toward it. Climax in the final 5 seconds.",
+      "wp:model": "Hailuo", "wp:duration": 15,
+      "wp:x": 700, "wp:y": 300,
+      "wp:derivedFrom": [{ "@id": "#clip1" }],
+      "schema:video": "", "wp:status": "success"
+    },
+    {
+      "@id": "#stitch",
+      "@type": "wp:Stitch",
+      "schema:name": "Stitch 30s",
+      "wp:transition": "match-frame",
+      "wp:x": 1020, "wp:y": 240,
+      "wp:derivedFrom": [{ "@id": "#clip1" }, { "@id": "#clip2" }],
+      "wp:status": "success"
+    },
+    {
+      "@id": "#score",
+      "@type": "wp:Score",
+      "schema:name": "Score",
+      "wp:prompt": "Ambient bed: low drone building to a swell aligned to the bloom at ~0:22. Duck under clip audio.",
+      "wp:x": 1020, "wp:y": 440,
+      "wp:derivedFrom": [{ "@id": "#stitch" }],
+      "wp:status": "pending"
+    },
+    {
+      "@id": "#export",
+      "@type": "wp:Export",
+      "schema:name": "Export",
+      "wp:format": "1920×1080 · yuv420p · +faststart",
+      "wp:x": 1320, "wp:y": 320,
+      "wp:derivedFrom": [{ "@id": "#stitch" }, { "@id": "#score" }],
+      "wp:status": "pending"
+    }
+  ]
+}

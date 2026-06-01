@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>webprompts</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.json">
+<style>
+  :root{ --ink:#1c1530; --mut:#6b6680; --line:#e6e2f0; --bg:#f6f4fb; --accent:#7c3aed; }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--ink);background:var(--bg);height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+  .top{display:flex;align-items:center;gap:.6rem;background:#fff;border-bottom:1px solid var(--line);padding:.55rem .9rem;flex:0 0 auto;z-index:5}
+  .top b{font-weight:800;letter-spacing:.02em;color:var(--accent)}
+  .top .name{font-weight:600;color:var(--ink);max-width:40vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .top .by{color:var(--mut);font-size:.82rem}
+  .top .sp{margin-left:auto}
+  .top button,.top a.btn{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:.32rem .7rem;font:inherit;font-size:.82rem;cursor:pointer;color:var(--ink);text-decoration:none}
+  .top button:hover{border-color:var(--accent)}
+  .top a.root{color:var(--mut);text-decoration:none;font-size:.82rem;margin-left:.2rem}
+
+  .viewport{flex:1 1 auto;position:relative;overflow:hidden;cursor:grab;background:
+    radial-gradient(circle at 1px 1px, rgba(124,58,237,.12) 1px, transparent 0) 0 0/22px 22px}
+  .viewport.drag{cursor:grabbing}
+  #stage{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
+  #edges{position:absolute;left:-4000px;top:-4000px;width:12000px;height:12000px;overflow:visible;pointer-events:none}
+  #edges path{fill:none;stroke:#b9a9e6;stroke-width:2}
+
+  .node{position:absolute;width:230px;background:#fff;border:1px solid var(--line);border-radius:12px;
+        box-shadow:0 4px 14px rgba(28,21,48,.08);overflow:hidden}
+  .node .nhead{display:flex;align-items:center;gap:.4rem;padding:.4rem .6rem;border-bottom:1px solid var(--line);font-size:.74rem}
+  .node .ntype{font-weight:800;text-transform:uppercase;letter-spacing:.04em;font-size:.64rem;padding:.08rem .4rem;border-radius:5px;color:#fff}
+  .node .nname{font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .node .st{margin-left:auto;width:8px;height:8px;border-radius:50%;background:#cbd5e1;flex:0 0 auto}
+  .node .st.success{background:#10b981}.node .st.pending{background:#f59e0b}.node .st.error{background:#ef4444}
+  .node .media{display:block;width:100%;height:120px;object-fit:cover;background:#0d0a18}
+  .node video.media{background:#000}
+  .node .body{padding:.5rem .6rem}
+  .node .prompt{color:#33304a;font-size:.8rem;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap}
+  .node .desc{color:#33304a;font-size:.8rem;font-style:italic;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .node .meta{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.4rem}
+  .node .chip{font-size:.66rem;color:var(--mut);background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:.04rem .45rem}
+
+  .ctrls{position:absolute;left:14px;bottom:14px;display:flex;gap:.3rem;z-index:4}
+  .ctrls button{width:30px;height:30px;border:1px solid var(--line);background:#fff;border-radius:8px;font:inherit;font-size:1rem;cursor:pointer;color:var(--ink)}
+  .ctrls .z{display:flex;align-items:center;font-size:.78rem;color:var(--mut);padding:0 .4rem}
+  .center{position:absolute;inset:0;display:grid;place-items:center;color:var(--mut);text-align:center;padding:2rem}
+  .center h2{color:var(--ink)}
+  .bible{position:absolute;right:14px;top:14px;max-width:320px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:.55rem .7rem;font-size:.78rem;color:#33304a;box-shadow:0 4px 14px rgba(28,21,48,.08);z-index:4}
+  .bible b{display:block;color:var(--accent);font-size:.64rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.2rem}
+</style>
+</head>
+<body>
+<div class="top">
+  <b>webprompts</b><span class="name" id="cname"></span><span class="by" id="cby"></span>
+  <span class="sp"></span>
+  <button id="open" title="Open a webprompts JSON-LD by URL">Open</button>
+  <button id="fit" title="Fit to view">Fit</button>
+  <a class="root" href="../../../">&uarr; root</a>
+</div>
+
+<div class="viewport" id="vp">
+  <div id="stage">
+    <svg id="edges"><g id="elines"></g></svg>
+    <div id="nodes"></div>
+  </div>
+  <div class="bible" id="bible" style="display:none"></div>
+  <div class="ctrls">
+    <button id="zout">−</button><span class="z" id="zlabel">100%</span><button id="zin">+</button>
+  </div>
+  <div class="center" id="center" style="display:none"></div>
+</div>
+
+<!-- A webprompts canvas can also be embedded inline as a data island:
+     <script type="application/ld+json" id="webprompts-data"> { … } </script> -->
+
+<script src="https://unpkg.com/xlogin"></script>
+<script>
+// webprompts — P1: canvas reader. Loads a webprompts JSON-LD (inline data island,
+// ?src=<url>, or the built-in sample) and renders the node graph (prompt / image /
+// video / clip / stitch / score / export nodes, wired by wp:derivedFrom) on a
+// pan + zoom canvas. Read-only — edit + save lands in P2.
+"use strict";
+var SCHEMA="https://schema.org/", WP="https://webprompts.org/ns#";
+var EDGE_OFF=4000;  // matches #edges left/top so svg coords == stage coords
+var CARD_W=230;
+var authFetch=function(u,o){ return ((window.xlogin&&window.xlogin.authFetch)||fetch)(u,o); };
+var $=function(id){ return document.getElementById(id); };
+function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+
+// ---- JSON-LD helpers (tolerant of compact/expanded shapes) ----
+function arr(v){ return Array.isArray(v)?v:(v==null?[]:[v]); }
+function idOf(v){ if(v==null)return null; if(typeof v==="string")return v; if(Array.isArray(v))return v.length?idOf(v[0]):null; return v["@id"]||null; }
+function lit(v){ if(v==null)return null; if(typeof v!=="object")return v; if(Array.isArray(v))return v.length?lit(v[0]):null; return v["@value"]!=null?v["@value"]:(v["@id"]!=null?v["@id"]:null); }
+function get(n,keys){ for(var i=0;i<keys.length;i++){ if(n[keys[i]]!==undefined)return n[keys[i]]; } return undefined; }
+function P(n,suffix){ return get(n,["wp:"+suffix, WP+suffix, suffix]); }    // wp: property
+function S(n,suffix){ return get(n,["schema:"+suffix, SCHEMA+suffix, suffix]); } // schema: property
+function localType(n){ var t=arr(n["@type"]||n["a"]); for(var i=0;i<t.length;i++){ var x=idOf(t[i])||t[i]; if(typeof x==="string"){ var m=x.replace(/.*[#/:]/,""); if(m&&m!=="Canvas")return m; } } return null; }
+
+function collectNodes(doc){
+  // nodes live under wp:node, or any @graph entry that has a position/type.
+  var raw = P(doc,"node");
+  if(raw===undefined){
+    var g = doc["@graph"]; if(Array.isArray(g)) raw=g.filter(function(n){ return localType(n) && localType(n)!=="Canvas"; });
+  }
+  return arr(raw).map(function(n){
+    return {
+      id: idOf(n["@id"]||n) || ("n"+Math.random().toString(36).slice(2)),
+      type: localType(n) || "Node",
+      name: lit(S(n,"name")) || lit(P(n,"name")) || "",
+      x: +lit(P(n,"x"))||0, y: +lit(P(n,"y"))||0,
+      prompt: lit(P(n,"prompt")),
+      desc: lit(P(n,"description")),
+      model: lit(P(n,"model")), duration: lit(P(n,"duration")),
+      format: lit(P(n,"format")), transition: lit(P(n,"transition")),
+      status: (lit(P(n,"status"))||"").toLowerCase(),
+      image: idOf(S(n,"image"))||idOf(S(n,"thumbnailUrl")),
+      video: idOf(S(n,"video"))||idOf(S(n,"contentUrl")),
+      from: arr(P(n,"derivedFrom")).map(idOf).filter(Boolean)
+    };
+  });
+}
+
+var TYPE_COLOR={ CharacterSheet:"#7c3aed", Storyboard:"#0ea5e9", Clip:"#2563eb", Image:"#0891b2",
+  Prompt:"#7c3aed", Stitch:"#d946ef", Score:"#059669", Export:"#475569", Video:"#2563eb" };
+
+// ---- render ----
+var scale=1, tx=0, ty=0, NODES=[];
+function applyTransform(){ $("stage").style.transform="translate("+tx+"px,"+ty+"px) scale("+scale+")"; $("zlabel").textContent=Math.round(scale*100)+"%"; }
+
+function nodeCard(nd){
+  var col=TYPE_COLOR[nd.type]||"#7c3aed";
+  var media="";
+  if(nd.video) media='<video class="media" src="'+esc(nd.video)+'" muted playsinline preload="metadata"></video>';
+  else if(nd.image) media='<img class="media" src="'+esc(nd.image)+'" alt="">';
+  var bodyParts=[];
+  if(nd.desc) bodyParts.push('<div class="desc">'+esc(nd.desc)+'</div>');
+  if(nd.prompt) bodyParts.push('<div class="prompt">'+esc(nd.prompt)+'</div>');
+  var chips=[];
+  if(nd.model) chips.push(esc(nd.model));
+  if(nd.duration) chips.push(esc(nd.duration)+"s");
+  if(nd.transition) chips.push("↔ "+esc(nd.transition));
+  if(nd.format) chips.push(esc(nd.format));
+  if(chips.length) bodyParts.push('<div class="meta">'+chips.map(function(c){return '<span class="chip">'+c+'</span>';}).join("")+'</div>');
+  return '<div class="node" data-id="'+esc(nd.id)+'" style="left:'+nd.x+'px;top:'+nd.y+'px">'+
+    '<div class="nhead"><span class="ntype" style="background:'+col+'">'+esc(nd.type)+'</span>'+
+      '<span class="nname">'+esc(nd.name||nd.id)+'</span><span class="st '+esc(nd.status)+'"></span></div>'+
+    media+
+    (bodyParts.length?'<div class="body">'+bodyParts.join("")+'</div>':'')+
+  '</div>';
+}
+
+function render(doc){
+  NODES=collectNodes(doc);
+  $("cname").textContent=lit(S(doc,"name"))||"Untitled Canvas";
+  var bible=lit(P(doc,"bible"));
+  if(bible){ $("bible").style.display=""; $("bible").innerHTML='<b>Bible</b>'+esc(bible); } else $("bible").style.display="none";
+  if(!NODES.length){ $("center").style.display="grid"; $("center").innerHTML='<div><h2>Empty canvas</h2><p>No nodes found in this webprompts document.</p></div>'; return; }
+  $("center").style.display="none";
+  $("nodes").innerHTML=NODES.map(nodeCard).join("");
+  // wire each video thumbnail to play/pause on click
+  $("nodes").querySelectorAll("video.media").forEach(function(v){ v.addEventListener("click",function(e){ e.stopPropagation(); v.paused?v.play():v.pause(); }); });
+  requestAnimationFrame(function(){ drawEdges(); fit(); });
+}
+
+function drawEdges(){
+  var byId={}, els=$("nodes").querySelectorAll(".node");
+  els.forEach(function(el){ byId[el.dataset.id]={ el:el, x:parseFloat(el.style.left), y:parseFloat(el.style.top), w:el.offsetWidth, h:el.offsetHeight }; });
+  var d="";
+  NODES.forEach(function(nd){
+    var t=byId[nd.id]; if(!t)return;
+    nd.from.forEach(function(srcId){
+      var s=byId[srcId]; if(!s)return;
+      // right-middle of source → left-middle of target (left→right flow)
+      var x1=s.x+s.w+EDGE_OFF, y1=s.y+s.h/2+EDGE_OFF, x2=t.x+EDGE_OFF, y2=t.y+t.h/2+EDGE_OFF;
+      var dx=Math.max(40,Math.abs(x2-x1)*0.5);
+      d+="M"+x1+" "+y1+" C"+(x1+dx)+" "+y1+" "+(x2-dx)+" "+y2+" "+x2+" "+y2+" ";
+    });
+  });
+  $("elines").innerHTML = d? '<path d="'+d+'"/>' : "";
+}
+
+function fit(){
+  if(!NODES.length)return;
+  var els=$("nodes").querySelectorAll(".node"), minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
+  els.forEach(function(el){ var x=parseFloat(el.style.left),y=parseFloat(el.style.top); minX=Math.min(minX,x);minY=Math.min(minY,y);maxX=Math.max(maxX,x+el.offsetWidth);maxY=Math.max(maxY,y+el.offsetHeight); });
+  var vp=$("vp").getBoundingClientRect(), pad=60;
+  var sx=(vp.width-pad*2)/(maxX-minX), sy=(vp.height-pad*2)/(maxY-minY);
+  scale=Math.min(1, Math.max(0.15, Math.min(sx,sy)));
+  tx=pad-minX*scale + (vp.width-pad*2-(maxX-minX)*scale)/2;
+  ty=pad-minY*scale + (vp.height-pad*2-(maxY-minY)*scale)/2;
+  applyTransform();
+}
+
+// ---- pan + zoom ----
+(function(){
+  var vp=$("vp"), down=null;
+  vp.addEventListener("pointerdown",function(e){ if(e.target.closest(".node")&&e.target.closest("video"))return; down={x:e.clientX,y:e.clientY,tx:tx,ty:ty}; vp.classList.add("drag"); vp.setPointerCapture(e.pointerId); });
+  vp.addEventListener("pointermove",function(e){ if(!down)return; tx=down.tx+(e.clientX-down.x); ty=down.ty+(e.clientY-down.y); applyTransform(); });
+  vp.addEventListener("pointerup",function(e){ down=null; vp.classList.remove("drag"); try{vp.releasePointerCapture(e.pointerId);}catch(_){} });
+  vp.addEventListener("wheel",function(e){ e.preventDefault(); var r=vp.getBoundingClientRect(), mx=e.clientX-r.left, my=e.clientY-r.top;
+    var f=Math.exp(-e.deltaY*0.0015), ns=Math.min(3,Math.max(0.1,scale*f));
+    tx=mx-(mx-tx)*(ns/scale); ty=my-(my-ty)*(ns/scale); scale=ns; applyTransform(); },{passive:false});
+  $("zin").onclick=function(){ zoomBy(1.2); }; $("zout").onclick=function(){ zoomBy(1/1.2); };
+  function zoomBy(f){ var r=$("vp").getBoundingClientRect(), mx=r.width/2,my=r.height/2, ns=Math.min(3,Math.max(0.1,scale*f)); tx=mx-(mx-tx)*(ns/scale); ty=my-(my-ty)*(ns/scale); scale=ns; applyTransform(); }
+  $("fit").onclick=fit;
+})();
+
+$("open").onclick=function(){ var u=prompt("webprompts JSON-LD URL (a pod resource):", location.href.split("?")[0].replace(/[^/]*$/,"")+"sample.jsonld"); if(u)location.search="?src="+encodeURIComponent(u.trim()); };
+
+// ---- load: data island → ?src=<url> → built-in sample ----
+function fail(msg){ $("center").style.display="grid"; $("center").innerHTML='<div><h2>Couldn’t load</h2><p>'+esc(msg)+'</p></div>'; }
+function start(){
+  var island=$("webprompts-data");
+  if(island && island.textContent.trim()){ try{ return render(JSON.parse(island.textContent)); }catch(e){ return fail("Bad inline JSON-LD: "+e.message); } }
+  var src=new URLSearchParams(location.search).get("src");
+  var url= src || (location.href.split("?")[0].replace(/[^/]*$/,"")+"sample.jsonld");
+  $("cby").textContent= src? "" : "· sample";
+  authFetch(url,{headers:{Accept:"application/ld+json"}}).then(function(r){ if(!r.ok)throw new Error("HTTP "+r.status); return r.json(); })
+    .then(render).catch(function(e){ fail((src?src:"sample")+" — "+e.message); });
+}
+document.addEventListener("xlogin",function(){ /* re-fetch could go here for private src */ });
+start();
+</script>
+</body>
+</html>

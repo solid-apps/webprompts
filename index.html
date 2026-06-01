@@ -132,7 +132,7 @@ function applyTransform(){ $("stage").style.transform="translate("+tx+"px,"+ty+"
 function nodeCard(nd){
   var col=TYPE_COLOR[nd.type]||"#7c3aed";
   var media="";
-  if(nd.video) media='<video class="media" src="'+esc(nd.video)+'" muted playsinline preload="metadata"></video>';
+  if(nd.video) media='<video class="media" src="'+esc(nd.video)+'" controls playsinline preload="metadata"></video>';
   else if(nd.image) media='<img class="media" src="'+esc(nd.image)+'" alt="">';
   var bodyParts=[];
   if(nd.desc) bodyParts.push('<div class="desc">'+esc(nd.desc)+'</div>');
@@ -159,8 +159,8 @@ function render(doc){
   if(!NODES.length){ $("center").style.display="grid"; $("center").innerHTML='<div><h2>Empty canvas</h2><p>No nodes found in this webprompts document.</p></div>'; return; }
   $("center").style.display="none";
   $("nodes").innerHTML=NODES.map(nodeCard).join("");
-  // wire each video thumbnail to play/pause on click
-  $("nodes").querySelectorAll("video.media").forEach(function(v){ v.addEventListener("click",function(e){ e.stopPropagation(); v.paused?v.play():v.pause(); }); });
+  // videos use native <video controls> for play/seek/volume; the pan handler
+  // ignores pointerdowns on a <video> so the controls work without panning.
   requestAnimationFrame(function(){ drawEdges(); fit(); });
 }
 
